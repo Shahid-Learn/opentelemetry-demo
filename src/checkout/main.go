@@ -1,6 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
-// Test workflow trigger for CI build-push (v2 - with fixed ACR config)
+// Test workflow trigger for CI build-push (v3 - with fixed ACR config)
 package main
 
 import (
