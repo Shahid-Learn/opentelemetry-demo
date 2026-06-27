@@ -15,17 +15,8 @@ permissions:
   contents: read
 
 jobs:
-  build_images:
-    permissions:  # required by the reusable workflow
-      contents: read
-      packages: write
-    uses: ./.github/workflows/component-build-images.yml
-    with:
-      push: ${{ github.event_name == 'push' }}
-      # Use a non-release tag for PR builds; tags are not pushed when push=false.
-      version: ${{ github.event_name == 'push' && 'main' || 'dev' }}
-    secrets: inherit
-
+  # build_images job moved to ci-build-push.yml for Azure ACR
+  
   markdownlint:
     runs-on: ubuntu-latest
     steps:
