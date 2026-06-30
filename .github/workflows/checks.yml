@@ -120,7 +120,6 @@ jobs:
 
   build-test:
     needs: [
-      build_images,
       markdownlint,
       yamllint,
       misspell,
