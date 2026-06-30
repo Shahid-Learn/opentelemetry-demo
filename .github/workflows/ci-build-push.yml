@@ -131,30 +131,32 @@ jobs:
         with:
           sarif_file: trivy-results.sarif
 
-  # trigger-deploy:
-  #   name: Trigger Infra Repo Deployment
-  #   runs-on: ubuntu-latest
-  #   needs: build-push
-  #   if: github.ref == 'refs/heads/main' && needs.build-push.result == 'success'
-  #
-  #   steps:
-  #     - name: Trigger infra repo CD workflow
-  #       uses: actions/github-script@v8
-  #       env:
-  #         IMAGE_TAG: ${{ github.sha }}
-  #         INFRA_REPO_OWNER: ${{ vars.INFRA_REPO_OWNER }}
-  #         INFRA_REPO_NAME: ${{ vars.INFRA_REPO_NAME }}
-  #       with:
-  #         github-token: ${{ secrets.INFRA_REPO_DISPATCH_TOKEN }}
-  #         script: |
-  #           await github.rest.actions.createWorkflowDispatch({
-  #             owner: process.env.INFRA_REPO_OWNER,
-  #             repo: process.env.INFRA_REPO_NAME,
-  #             workflow_id: 'cd-deploy.yml',
-  #             ref: 'main',
-  #             inputs: {
-  #               image_tag: process.env.IMAGE_TAG.substring(0, 7),
-  #               environment: 'production'
-  #             }
-  #           });
+  trigger-deploy:
+    name: Trigger Infra Repo Deployment
+    runs-on: ubuntu-latest
+    needs: [detect-changes, build-push]
+    if: github.ref == 'refs/heads/main' && needs.build-push.result == 'success' && needs.detect-changes.outputs.services != '[]'
+
+    steps:
+      - name: Trigger infra repo CD workflow
+        uses: actions/github-script@v8
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+          CHANGED_SERVICES: ${{ needs.detect-changes.outputs.services }}
+          INFRA_REPO_OWNER: ${{ vars.INFRA_REPO_OWNER }}
+          INFRA_REPO_NAME: ${{ vars.INFRA_REPO_NAME }}
+        with:
+          github-token: ${{ secrets.INFRA_REPO_DISPATCH_TOKEN }}
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: process.env.INFRA_REPO_OWNER,
+              repo: process.env.INFRA_REPO_NAME,
+              workflow_id: 'cd-deploy.yml',
+              ref: 'main',
+              inputs: {
+                image_tag: process.env.IMAGE_TAG.substring(0, 7),
+                changed_services: process.env.CHANGED_SERVICES,
+                namespace: 'otel-demo'
+              }
+            });
 
